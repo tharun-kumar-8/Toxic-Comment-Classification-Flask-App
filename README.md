@@ -13,3 +13,5 @@ Check out the live website: [Click here](https://tharun4-flaskapp.hf.space/)
 
 
 Thank You
+
+(Note: The used BERT model is not uploaded here due to size limitations)
