@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toxicity Prediction</title>
+    <link rel="stylesheet" href="{{url_for('static',filename='css/bootstrap.min.css')}}">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #4973c5;
+            border-radius: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+            /* color: #388e3c; */
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-bottom: 20px;
+            padding: 10px;
+            font-size: 18px;
+            border: 0px solid #ccc;
+            border-radius: 6px;
+            resize: none;
+            background-color: #ecf0f1;
+            box-shadow: 0px 2.25px 10px;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            background-color: #388e3c;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            font-size: 18px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        .result strong {
+            color: #388e3c;
+        }
+
+        .result button {
+            margin: 5px;
+            padding: 8px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .result button.identity_hate {
+            background-color: #ccc;
+            color: #333;
+        }
+        .result button.insult,
+        .result button.obscene,
+        .result button.toxic {
+            background-color: #ff0000;
+            color: #fff;
+        }
+        .result button.severe_toxic,
+        .result button.threat {
+            background-color: #ccc;
+            color: #333;
+        }
+        #input-text:focus {
+            border: 1px solid #403fb6;
+            outline: none;
+        }
+
+        .predictBtn {
+            background-color: #337eb0;
+            color: white;
+            box-shadow: 0px 2px 5px black;
+        }
+
+        .predictBtn:hover {
+            background-color: #2874A6;
+            color: white;
+        }
+
+        .themeColor {
+            color: #403fb6;
+        }
+
+        .bannerImage {
+            object-fit: cover;
+            /* min-height: calc(100vh - 100px); */
+        }
+
+        .resultBase {
+            margin: 30px 0;
+        }
+
+        .resultBtn {
+            box-shadow: 3px 4px 5px #000;
+            margin-right: 10px;
+            border-radius: 39px;
+            background: silver;
+            width: 130px;
+            height: 37px;
+            font-size: 15px;
+            text-align: center;
+            padding: 0;
+        }
+
+        .resultBtn:hover {
+            border: none;
+            pointer-events: none;
+            color: #fff;
+
+        }
+
+        .card-rgt {
+            border-top: 6px solid #2e2da9;
+            border-radius: 20px;
+            /* background-color: #858dff82; */
+            /* background-color: #57575e29; */
+            background-color: #ffffff;
+            box-shadow: 0px 3.4px 12px;
+        }
+
+        .resultcard {
+            display: none;
+        }
+
+
+
+        .triangle {
+            position: relative;
+            top: -9px;
+            right: 0;
+            left: 47%;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent; 
+            border-right: 10px solid transparent;
+            border-bottom: 10px solid #858dff82;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+        }
+
+        .resultBase {
+            display: flex;
+            flex-wrap: wrap;
+            flex-direction: row;
+            margin: 0;
+            text-align: center;
+        }
+
+        .resultBase button {
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        .resultBase li {
+            width: 30%;
+            margin-right: 10px;
+        }
+
+        body {
+            background: url('/static/images/bgimage.jpg') no-repeat;
+            background-size: cover;
+        }
+
+        @media screen and (max-width:1024px) {
+            .resultBase {
+                display: flex;
+                flex-wrap: wrap;
+                flex-direction: row;
+                margin: 0;
+                text-align: center;
+            }
+
+            .resultBase button {
+                margin-bottom: 10px;
+                width: 100%;
+            }
+
+            .resultBase li {
+                width: 45%;
+                margin-right: 10px;
+            }
+            .predictionBase {
+            border-radius: 30px;
+            /* Adjust this value to control the roundness of the edges */
+        }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container  d-flex align-items-center justify-content-center min-vh-100" data-aos="fade-up">
+
+        <div class="row  predictionBase w-100 justify-content-center">
+            <!--   <div class="col-xxl-6 col-xl-6 col-lg-6 col-md-12 col-sm-12 col-12 px-0">
+                <div>
+                    <img src="./images/bgimage.jpg" alt="bannerImage" class="w-100 h-100  bannerImage">
+                </div>
+            </div> -->
+            <div class="col-xxl-6 col-xl-6 col-lg-6 col-md-12 col-sm-12 col-12   ">
+                <div class="row justify-content-center">
+                    <div
+                        class="col-xxl-8 col-xl-8 col-lg-9 col-md-7 col-sm-8 col-12 shadow card-rgt  position-relative">
+                        <div class="triangle"></div>
+                        <div class="pt-5 pb-4">
+                            <h1 class="text-center fw-bold"  style="color: #000;">Toxicity Prediction</h1>
+                            <form id="prediction-form" class="px-md-5 px-2">
+                                <textarea id="input-text" class="mb-0" placeholder="Your text goes here..."></textarea>
+                                <div class="row justify-content-center">
+
+                                    <div class="mt-3 text-center w-50">
+
+                                        <button type="submit" class="predictBtn " id="predict">Predict</button>
+                                    </div>
+                                </div>
+                            </form>
+                            <div id="prediction-result" class="result" style="display: none;"></div>
+                        </div>
+                        <div class=" mb-3 resultcard">
+                            <ul class="resultBase list-unstyled">
+                                <li>
+                                    <button class="resultBtn pe-none" id="toxic"
+                                        style="background-color: red;">Toxic</button>
+                                </li>
+                                <li>
+                                    <button class="resultBtn pe-none" id="severe_toxic">Severely Toxic</button>
+                                </li>
+                                <li>
+                                    <button class="resultBtn pe-none" id="obscene">Obscene</button>
+                                </li>
+                                <li>
+                                    <button class="resultBtn pe-none" id="insult">Insult</button>
+                                </li>
+                                <li>
+                                    <button class="resultBtn pe-none" id="threat">Threat</button>
+                                </li>
+                                <li>
+                                    <button class="resultBtn pe-none" id="identity_attack">Identity Attack</button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init();
+    </script>
+    <script>
+
+        document.getElementById("prediction-form").addEventListener("submit", function (event) {
+            event.preventDefault();
+            let inputText = document.getElementById("input-text").value.trim();
+            if (inputText !== "") {
+                fetch("/predict", {
+                    method: "POST",
+                    body: new URLSearchParams({ text: inputText }),
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data.toxic);
+                        console.log(data.severly_toxic)
+                        console.log(data.obscene)
+                        console.log(data.insult)
+                        console.log(data.threat)
+                        console.log(data.identity_attack)
+                        // Select all elements with the class name "btnresult"
+                        var elements = document.getElementsByClassName("resultBtn");
+
+                        // Loop through each element and change its background color to white
+                        for (var i = 0; i < elements.length; i++) {
+                            elements[i].style.backgroundColor = "silver";
+                            elements[i].style.color = "black";
+                        }
+                        if (data.toxic == 1) {
+                            document.getElementById("toxic").style.backgroundColor = "red";
+                            document.getElementById("toxic").style.color = "white";
+                        }
+                        if (data.severly_toxic == 1) {
+                            document.getElementById("severly_toxic").style.backgroundColor = "red";
+                            document.getElementById("severly_toxic").style.color = "white";
+                        }
+                        if (data.obscene == 1) {
+                            document.getElementById("obscene").style.backgroundColor = "red";
+                            document.getElementById("obscene").style.color = "white";
+                        }
+                        if (data.insult == 1) {
+                            document.getElementById("insult").style.backgroundColor = "red";
+                            document.getElementById("insult").style.color = "white";
+                        }
+                        if (data.threat == 1) {
+                            document.getElementById("threat").style.backgroundColor = "red";
+                            document.getElementById("threat").style.color = "white";
+                        }
+                        if (data.identity_attack == 1) {
+                            document.getElementById("identity_attack").style.backgroundColor = "red";
+                            document.getElementById("identity_attack").style.color = "white";
+                        }
+                        let resultDiv = document.getElementById("prediction-result");
+                        let predictions = "<strong>Predictions:</strong><br>";
+                        const resultCard = document.querySelector('.resultcard');
+                        resultCard.style.display = 'block';
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                    });
+            } else {
+                alert("Please enter some text.");
+            }
+        });
+    </script>
+</body>
+<script src="{{url_for('static',filename='/js/bootstrap.bundle.js')}}"></script>
+
+</html>
